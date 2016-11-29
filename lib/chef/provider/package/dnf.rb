@@ -69,11 +69,13 @@ class Chef
           end
 
           def reap
-            Process.kill("KILL", wait_thr.pid)
-            stdin.close
-            stdout.close
-            stderr.close
-            wait_thr.value
+            unless wait_thr.nil?
+              Process.kill("KILL", wait_thr.pid)
+              stdin.close unless stdin.nil?
+              stdout.close unless stdout.nil?
+              stderr.close unless stderr.nil?
+              wait_thr.value
+            end
           end
 
           def check
@@ -81,32 +83,43 @@ class Chef
           end
 
           # @returns Array<Version>
-          def whatinstalled(package_name)
+          def whatinstalled(provides, version = nil, arch = nil)
             with_helper do
-              stdin.syswrite "whatinstalled #{package_name}\n"
+              hash = { "action" => "whatinstalled" }
+              hash["provides"] = provides
+              hash["version"] = version unless version.nil?
+              hash["arch" ] = arch unless arch.nil?
+              json = FFI_Yajl::Encoder.encode(hash)
+              puts json
+              stdin.syswrite json + "\n"
               output = stdout.sysread(4096)
+              puts output
               output.split.each_slice(3).map { |x| Version.new(*x) }
             end
           end
 
           # @returns Array<Version>
-          def whatavailable(package_name)
+          def whatavailable(provides, version = nil, arch = nil)
             with_helper do
-              stdin.syswrite "whatavailable #{package_name}\n"
+              hash = { "action" => "whatavailable" }
+              hash["provides"] = provides
+              hash["version"] = version unless version.nil?
+              hash["arch" ] = arch unless arch.nil?
+              json = FFI_Yajl::Encoder.encode(hash)
+              puts json
+              stdin.syswrite json + "\n"
               output = stdout.sysread(4096)
+              puts output
               output.split.each_slice(3).map { |x| Version.new(*x) }
             end
           end
 
           def flushcache
             restart # FIXME: make flushcache work + not leak memory
-            #with_helper do
-            #  stdin.syswrite "flushcache\n"
-            #end
           end
 
           def restart
-            reap unless stdin.nil?
+            reap
             start
           end
 
