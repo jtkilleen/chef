@@ -87,7 +87,7 @@ class Chef
             with_helper do
               hash = { "action" => "whatinstalled" }
               hash["provides"] = provides
-              hash["version"] = version unless version.nil?
+              hash["version"] = "#{version}*" unless version.nil?
               hash["arch" ] = arch unless arch.nil?
               json = FFI_Yajl::Encoder.encode(hash)
               puts json
@@ -103,7 +103,7 @@ class Chef
             with_helper do
               hash = { "action" => "whatavailable" }
               hash["provides"] = provides
-              hash["version"] = version unless version.nil?
+              hash["version"] = "#{version}*" unless version.nil?
               hash["arch" ] = arch unless arch.nil?
               json = FFI_Yajl::Encoder.encode(hash)
               puts json
@@ -202,13 +202,13 @@ class Chef
         # @returns Array<Version>
         def available_versions(package_name)
           @available_versions ||= {}
-          @available_versions[package_name] ||= python_helper.whatavailable(package_name)
+          @available_versions[package_name] ||= python_helper.whatavailable(package_name, desired_name_versions[package_name], desired_name_archs[package_name])
         end
 
         # @returns Array<Version>
         def installed_versions(package_name)
           @installed_versions ||= {}
-          @installed_versions[package_name] ||= python_helper.whatinstalled(package_name)
+          @installed_versions[package_name] ||= python_helper.whatinstalled(package_name, desired_name_versions[package_name], desired_name_archs[package_name])
           @installed_versions[package_name]
         end
 

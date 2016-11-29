@@ -34,21 +34,24 @@ def query(command):
     q = sack.query()
 
     if command['action'] == "whatinstalled":
-      q = q.installed()
+        q = q.installed()
 
     if command['action'] == "whatavailable":
-      q = q.available()
+        q = q.available()
 
     # handle arch guessing
-    subj = dnf.subject.Subject(command['provides'])
+    subj = dnf.subject.Subject("{}*".format(command['provides']))
     poss = dnf.util.first(subj.subj.nevra_possibilities_real(sack, allow_globs=True))
 
     if poss and poss.arch:
-      q = q.filter(arch=[ 'noarch', poss.arch ])
-      q = q.filter(name=poss.name)
+        q = q.filter(arch=[ 'noarch', poss.arch ])
+        q = q.filter(name=poss.name)
     else:
-      q = q.filter(arch=[ 'noarch', hawkey.detect_arch() ])
-      q = q.filter(provides=command['provides'])
+        q = q.filter(arch=[ 'noarch', hawkey.detect_arch() ])
+        q = q.filter(provides=command['provides'])
+
+    if 'version' in command:
+        q = q.filter(version__glob="{}*".format(command['version']))
 
     pkgs = dnf.query.latest_limit_pkgs(q, 1)
 

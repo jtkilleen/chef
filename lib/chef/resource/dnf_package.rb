@@ -34,7 +34,6 @@ class Chef
       provides :dnf_package
 
       # Install a specific arch
-      # FIXME: not implemented
       property :arch, [ String, Array ]
 
       # FIXME: dnf install should downgrade, so this should warn that users do not need to use it any more?
