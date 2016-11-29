@@ -30,6 +30,12 @@ class Chef
           def make_child_entry(child_name)
             Node.new(child_name, self)
           end
+
+          def create_child(child_name, file_contents = nil)
+            child = super
+            File.chmod(0600, child.file_path)
+            child
+          end
         end
       end
     end

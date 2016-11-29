@@ -110,6 +110,7 @@ class Chef
               child_paths[name].each do |path|
                 begin
                   Dir.mkdir(path)
+                  File.chmod(0700, path) if name == "nodes"
                 rescue Errno::EEXIST
                 end
               end

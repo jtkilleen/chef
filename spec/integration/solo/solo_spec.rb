@@ -17,6 +17,34 @@ describe "chef-solo" do
 
   let(:chef_solo) { "ruby bin/chef-solo --legacy-mode --minimal-ohai" }
 
+  when_the_repository "creates the nodes directory" do
+    let(:nodes_dir) { File.join(@repository_dir, "nodes") }
+
+    it "has the correct permissions" do
+      file "config/solo.rb", <<EOM
+chef_repo_path "#{@repository_dir}"
+EOM
+      result = shell_out("ruby bin/chef-solo -c \"#{path_to('config/solo.rb')}\" -l debug", :cwd => chef_dir)
+      result.error!
+      expect(File.stat(nodes_dir).mode.to_s(8)[2..5]).to eq("700")
+    end
+  end
+
+  when_the_repository "creates a node in the nodes directory" do
+    let(:nodes_dir) { File.join(@repository_dir, "nodes") }
+
+    it "has the correct permissions" do
+      file "config/solo.rb", <<EOM
+chef_repo_path "#{@repository_dir}"
+EOM
+      result = shell_out("ruby bin/chef-solo -c \"#{path_to('config/solo.rb')}\" -l debug", :cwd => chef_dir)
+      result.error!
+      Dir[File.join(nodes_dir, '*.json')].each do |node_file|
+        expect(File.stat(node_file).mode.to_s(8)[2..5]).to eq("0600")
+      end
+    end
+  end
+
   when_the_repository "has a cookbook with a basic recipe" do
     before do
       file "cookbooks/x/metadata.rb", cookbook_x_100_metadata_rb
